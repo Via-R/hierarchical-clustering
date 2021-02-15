@@ -1,13 +1,23 @@
 import sys
 import heapq
 import math
-import itertools
+from random import shuffle
 import random
+import matplotlib.pyplot as plt
+import itertools
 
 dimensions = 0
 points_list = []
 index_list = []
 
+markers = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', 'P', '*', 'h', 'H', '+', 'x', 'X', 'D',
+           'd']
+colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+
+colored_markers = [marker + color for marker, color in itertools.product(colors, markers)]
+shuffle(colored_markers)
+
+cm_ind = 0
 
 def find_centroid(cluster, points_list):
     centroid = []
@@ -146,10 +156,12 @@ def accuracy(k_clusters, lines):
 
 
 def print_result(k_clusters, precision, recall):
-    print(precision)
-    print(recall)
+    # print(precision)
+    # print(recall)
     for k_cluster in k_clusters:
-        print(k_cluster)
+        if dimensions == 2:
+            draw_cluster(k_cluster)
+        # print(k_cluster)
 
 
 def main(lines, k):
@@ -166,8 +178,6 @@ def main(lines, k):
         index_list.append([n])
         n += 1
 
-    print(index_list)
-
     dimensions = len(points_list[0])
     heap = setup_input(n)
     clusters_dict = clustering(heap, n)
@@ -177,16 +187,37 @@ def main(lines, k):
 
 def generate_input():
     input_list = []
-    for _ in range(88):
-        x = str(random.randint(0, 10) / 10)
-        y = str(random.randint(0, 10) / 10)
+    for _ in range(888):
+        x = str(random.randint(0, 100) / 100)
+        y = str(random.randint(0, 100) / 100)
         input_line = ",".join([x, y])
         input_list.append(input_line)
 
     return input_list
 
 
+def draw_cluster(indexes: list):
+    global cm_ind
+
+    xs = []
+    ys = []
+    for i in indexes:
+        xs.append(points_list[i][0])
+        ys.append(points_list[i][1])
+
+    plt.plot(xs, ys, colored_markers[cm_ind])
+    cm_ind += 1
+
+
 if __name__ == "__main__":
     lines = generate_input()
     k = int(sys.argv[2])
     main(lines, k)
+    if dimensions == 2:
+        if k > len(colored_markers):
+            print("It's not possible to draw so many different clusters")
+        else:
+            plt.xlabel('X')
+            plt.ylabel('Y')
+            plt.title('Hierarchical clustering')
+            plt.show()
