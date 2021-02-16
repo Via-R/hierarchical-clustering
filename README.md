@@ -1,8 +1,7 @@
 # Hierarchical clustering
-Labwork dedicated to hierarhical clustering algorithm
+![Clustering example](example.png)
 
 ## Description
-![Clustering example](example.png)
 
 This labwork implements hierarchical clustering algorithm, 
 targeted at grouping a set of points (in this case, 2D points, but the code
@@ -14,7 +13,7 @@ are picked randomly from the manually specified list of [matplotlib](https://mat
 supported types. 
 
 ## How to run
-If needed, create virtualenv
+If needed, create virtualenv:
 
     $ python3 -m venv venv
     $ source venv/bin/activate
