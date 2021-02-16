@@ -12,14 +12,17 @@ index_list = []
 
 markers = ['.', ',', 'o', 'v', '^', '<', '>', '1', '2', '3', '4', '8', 's', 'p', 'P', '*', 'h', 'H', '+', 'x', 'X', 'D',
            'd']
-colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 
 colored_markers = [marker + color for marker, color in itertools.product(colors, markers)]
 shuffle(colored_markers)
 
 cm_ind = 0
 
-def find_centroid(cluster, points_list):
+
+def find_centroid(cluster):
+    global points_list
+
     centroid = []
     cluster_length = len(cluster)
     cluster_list_for_centroid = []
@@ -37,19 +40,20 @@ def find_centroid(cluster, points_list):
     return centroid
 
 
-def euclidean_distance(cluster_a, cluster_b, points_list):
+def euclidean_distance(cluster_a, cluster_b):
+    global points_list
+
     sum_squared = 0
 
-    # print cluster_a
     if len(cluster_a) == 1:
         centroid_a = points_list[cluster_a[0]]
     else:
-        centroid_a = find_centroid(cluster_a, points_list)
+        centroid_a = find_centroid(cluster_a)
 
     if len(cluster_b) == 1:
         centroid_b = points_list[cluster_b[0]]
     else:
-        centroid_b = find_centroid(cluster_b, points_list)
+        centroid_b = find_centroid(cluster_b)
 
     for i in range(0, dimensions):
         x = centroid_a[i]
@@ -61,14 +65,13 @@ def euclidean_distance(cluster_a, cluster_b, points_list):
     return euclidean_dist
 
 
-def find_new_cluster_pairwise_distance(i, heap):
-    cluster_a = index_list[i]
-    for k in range(i + 1, len(index_list)):
-        cluster_b = index_list[k]
-        dist = euclidean_distance(cluster_a, cluster_b, points_list)
+def find_new_cluster_pairwise_distance(start_ind, heap):
+    cluster_a = index_list[start_ind]
+    for ind in range(start_ind + 1, len(index_list)):
+        cluster_b = index_list[ind]
+        dist = euclidean_distance(cluster_a, cluster_b)
         dist_list = [dist, [cluster_a, cluster_b]]
         heapq.heappush(heap, dist_list)
-    # return heap
 
 
 def merge_clusters(cluster_a, cluster_b):
@@ -104,94 +107,51 @@ def setup_input(n):
     return heap
 
 
-def gold_std(lines):
-    gold_std_dict = {}
-
-    index = 0
-    for each in lines:
-        point = each.strip().split(',')
-        cluster_name = point[-1]
-
-        gold_std_dict.setdefault(cluster_name, [])
-        gold_points_list = gold_std_dict[cluster_name]
-        gold_points_list.append(index)
-        gold_std_dict[cluster_name] = gold_points_list
-        index += 1
-
-    return gold_std_dict
-
-
-def precision_and_recall(my_pairs, gold_pairs):
-    common_pairs = set(my_pairs).intersection(gold_pairs)
-
-    my_pairs_count = float(len(my_pairs))
-    gold_pairs_count = float(len(gold_pairs))
-    common_pairs_count = float(len(common_pairs))
-
-    precision = common_pairs_count / my_pairs_count
-    recall = common_pairs_count / gold_pairs_count
-
-    return precision, recall
-
-
-def create_pairs(pairs, cluster):
-    new_pairs = list(itertools.combinations(cluster, 2))
-    pairs = pairs + new_pairs
-    return pairs
-
-
-def accuracy(k_clusters, lines):
-    my_pairs = []
-    gold_pairs = []
-    for cluster in k_clusters:
-        my_pairs = create_pairs(my_pairs, cluster)
-
-    gold_std_dict = gold_std(lines)
-
-    for key, value in gold_std_dict.items():
-        gold_pairs = create_pairs(gold_pairs, value)
-
-    precision, recall = precision_and_recall(my_pairs, gold_pairs)
-    return precision, recall
-
-
-def print_result(k_clusters, precision, recall):
-    # print(precision)
-    # print(recall)
+def print_result(clusters, desired_clusters_amount):
+    k_clusters = clusters[desired_clusters_amount]
     for k_cluster in k_clusters:
         if dimensions == 2:
             draw_cluster(k_cluster)
-        # print(k_cluster)
+        else:
+            print(k_cluster)
+
+    if dimensions == 2:
+        if desired_clusters_amount > len(colored_markers):
+            print("It's not possible to draw so many different clusters")
+        else:
+            plt.xlabel('X')
+            plt.ylabel('Y')
+            plt.title('Hierarchical clustering')
+            plt.show()
 
 
-def main(lines, k):
-    global dimensions
+def main():
+    global dimensions, points_list, index_list
     dimensions = 0
-    global points_list
     points_list = []
-    global index_list
     index_list = []
     n = 0
-    for x in lines:
-        data_point = [float(i) for i in x.strip().split(',')]
-        points_list.append(data_point)
+
+    points = generate_input()
+    desired_clusters_amount = int(sys.argv[1])
+
+    for point in points:
+        points_list.append(point)
         index_list.append([n])
         n += 1
 
     dimensions = len(points_list[0])
     heap = setup_input(n)
     clusters_dict = clustering(heap, n)
-    precision, recall = accuracy(clusters_dict[k], lines)
-    print_result(clusters_dict[k], precision, recall)
+    print_result(clusters_dict, desired_clusters_amount)
 
 
 def generate_input():
     input_list = []
     for _ in range(888):
-        x = str(random.randint(0, 100) / 100)
-        y = str(random.randint(0, 100) / 100)
-        input_line = ",".join([x, y])
-        input_list.append(input_line)
+        x = random.randint(0, 100) / 100
+        y = random.randint(0, 100) / 100
+        input_list.append([x, y])
 
     return input_list
 
@@ -210,14 +170,4 @@ def draw_cluster(indexes: list):
 
 
 if __name__ == "__main__":
-    lines = generate_input()
-    k = int(sys.argv[2])
-    main(lines, k)
-    if dimensions == 2:
-        if k > len(colored_markers):
-            print("It's not possible to draw so many different clusters")
-        else:
-            plt.xlabel('X')
-            plt.ylabel('Y')
-            plt.title('Hierarchical clustering')
-            plt.show()
+    main()
