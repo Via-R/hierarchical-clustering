@@ -1,7 +1,6 @@
 # Hierarchical clustering
 Labwork dedicated to hierarhical clustering algorithm
 
----
 ## Description
 ![Clustering example](example.png)
 
@@ -13,7 +12,7 @@ This code generates a set of 88 linearly distributed points in the 1x1 square, a
 groups them into the desired amount of clusters. Colors and types of points' markers
 are picked randomly from the manually specified list of [matplotlib](https://matplotlib.org/stable/index.html)
 supported types. 
----
+
 ## How to run
 If needed, create virtualenv
 
