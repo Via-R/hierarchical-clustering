@@ -125,27 +125,6 @@ def print_result(clusters, desired_clusters_amount):
             plt.show()
 
 
-def main():
-    global dimensions, points_list, index_list
-    dimensions = 0
-    points_list = []
-    index_list = []
-    n = 0
-
-    points = generate_input()
-    desired_clusters_amount = int(sys.argv[1])
-
-    for point in points:
-        points_list.append(point)
-        index_list.append([n])
-        n += 1
-
-    dimensions = len(points_list[0])
-    heap = setup_input(n)
-    clusters_dict = clustering(heap, n)
-    print_result(clusters_dict, desired_clusters_amount)
-
-
 def generate_input():
     input_list = []
     for _ in range(888):
@@ -167,6 +146,67 @@ def draw_cluster(indexes: list):
 
     plt.plot(xs, ys, colored_markers[cm_ind])
     cm_ind += 1
+
+
+def file_input():
+    with open("input.txt", "r") as f:
+        point_lines = f.readlines()
+    output = []
+    for point_line in point_lines:
+        point_list = [float(p) for p in point_line[:-1].split()]
+        point, aff_level = point_list[:-1], point_list[-1]
+        output.append([point, aff_level])
+
+    return output
+
+
+def process_affiliation(points_levels, affiliation_level):
+    return [point_level[0] for point_level in points_levels if point_level[1] >= affiliation_level]
+
+
+def main():
+    global dimensions, points_list, index_list
+    dimensions = 0
+    points_list = []
+    index_list = []
+    n = 0
+
+    input_source = input(
+        "Please select input source (type 1 or 2):\n1) input.txt file\n2) random generation\nChoice: "
+    ).lower()
+    if input_source == "1":
+        points_levels = file_input()
+        try:
+            affiliation_level = float(input("Please enter affiliation level: (0.0 - 1.0): "))
+            if not 0 <= affiliation_level <= 1:
+                raise ValueError
+        except ValueError:
+            print("Invalid input, please try again")
+            return
+
+        points = process_affiliation(points_levels, affiliation_level)
+
+    elif input_source == "2":
+        points = generate_input()
+    else:
+        print("Invalid choice, please try again")
+        return
+
+    try:
+        desired_clusters_amount = int(sys.argv[1])
+    except IndexError:
+        print("Please select desired clusters amount:\npython3 main.py [desired amount of clusters]")
+        return
+
+    for point in points:
+        points_list.append(point)
+        index_list.append([n])
+        n += 1
+
+    dimensions = len(points_list[0])
+    heap = setup_input(n)
+    clusters_dict = clustering(heap, n)
+    print_result(clusters_dict, desired_clusters_amount)
 
 
 if __name__ == "__main__":
